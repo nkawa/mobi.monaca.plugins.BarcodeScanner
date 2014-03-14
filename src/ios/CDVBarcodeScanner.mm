@@ -11,16 +11,13 @@
 #import <AVFoundation/AVFoundation.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 
-#ifdef DEBUGGER
-#import "MDUtility.h"
-#endif
-
 //------------------------------------------------------------------------------
 // use the all-in-one version of zxing that we built
 //------------------------------------------------------------------------------
 #import "zxing-all-in-one.h"
 
 #import <Cordova/CDVPlugin.h>
+
 
 //------------------------------------------------------------------------------
 // Delegate to handle orientation functions
@@ -49,8 +46,8 @@
 //------------------------------------------------------------------------------
 @interface CDVBarcodeScanner : CDVPlugin {}
 - (NSString*)isScanNotPossible;
-- (void)scan:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
-- (void)encode:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
+- (void)scan:(CDVInvokedUrlCommand*)command;
+- (void)encode:(CDVInvokedUrlCommand*)command;
 - (void)returnSuccess:(NSString*)scannedText format:(NSString*)format cancelled:(BOOL)cancelled callback:(NSString*)callback;
 - (void)returnError:(NSString*)message callback:(NSString*)callback;
 @end
@@ -88,9 +85,7 @@
 //------------------------------------------------------------------------------
 // view controller for the ui
 //------------------------------------------------------------------------------
-@interface CDVbcsViewController : UIViewController <CDVBarcodeScannerOrientationDelegate> {
-    CGAffineTransform originalTransform;
-}
+@interface CDVbcsViewController : UIViewController <CDVBarcodeScannerOrientationDelegate> {}
 @property (nonatomic, retain) CDVbcsProcessor*  processor;
 @property (nonatomic, retain) NSString*        alternateXib;
 @property (nonatomic)         BOOL             shutterPressed;
@@ -125,18 +120,18 @@
 }
 
 //--------------------------------------------------------------------------
-- (void)scan:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options {
+- (void)scan:(CDVInvokedUrlCommand*)command {
     CDVbcsProcessor* processor;
     NSString*       callback;
     NSString*       capabilityError;
     
-    callback = [arguments objectAtIndex:0];
+    callback = command.callbackId;
     
     // We allow the user to define an alternate xib file for loading the overlay. 
     NSString *overlayXib = nil;
-    if ( [arguments count] == 2 )
+    if ( [command.arguments count] >= 1 )
     {
-        overlayXib = [arguments objectAtIndex:1];
+        overlayXib = [command.arguments objectAtIndex:0];
     }
     
     capabilityError = [self isScanNotPossible];
@@ -157,8 +152,8 @@
 }
 
 //--------------------------------------------------------------------------
-- (void)encode:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options {
-    [self returnError:@"encode function not supported" callback:[arguments objectAtIndex:0]];
+- (void)encode:(CDVInvokedUrlCommand*)command {
+    [self returnError:@"encode function not supported" callback:command.callbackId];
 }
 
 //--------------------------------------------------------------------------
@@ -177,8 +172,7 @@
     
     NSString* js = [result toSuccessCallbackString:callback];
     
-//    [self writeJavascript:js];
-    [self performSelector:@selector(writeJavascript:) withObject:js afterDelay:0];
+    [self writeJavascript:js];
 }
 
 //--------------------------------------------------------------------------
@@ -264,30 +258,17 @@ parentViewController:(UIViewController*)parentViewController
 
 //--------------------------------------------------------------------------
 - (void)openDialog {
-    [self.parentViewController presentViewController:self.viewController animated:YES completion:nil];
-    
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-        #ifdef DEBUGGER
-            [[MDUtility getViewDelegate] hideMenuBar];
-        #endif
-    }
+    [self.parentViewController
+     presentModalViewController:self.viewController
+     animated:YES
+     ];
 }
 
 //--------------------------------------------------------------------------
 - (void)barcodeScanDone {
     self.capturing = NO;
     [self.captureSession stopRunning];
-    [self.parentViewController dismissViewControllerAnimated:YES completion:nil];
-        
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-        #ifdef DEBUGGER
-            [[MDUtility getViewDelegate] showMenuBar];
-        #endif
-
-        if (UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
-            self.viewController.presentingViewController.view.frame = CGRectMake(0, 0, self.viewController.view.bounds.size.width, self.viewController.view.bounds.size.height);
-        }
-    }
+    [self.parentViewController dismissModalViewControllerAnimated: YES];
     
     // viewcontroller holding onto a reference to us, release them so they
     // will release us
@@ -608,11 +589,8 @@ parentViewController:(UIViewController*)parentViewController
      writeImageToSavedPhotosAlbum:image.CGImage
      orientation:ALAssetOrientationUp
      completionBlock:^(NSURL* assetURL, NSError* error){
-         if (error) {
-             NSLog(@"   error writing image to library");
-         }else {
-             NSLog(@"   wrote image to library %@", assetURL);
-         }
+         if (error) NSLog(@"   error writing image to library");
+         else       NSLog(@"   wrote image to library %@", assetURL);
      }
      ];
 }
@@ -677,8 +655,6 @@ parentViewController:(UIViewController*)parentViewController
     // this fixes the bug when the statusbar is landscape, and the preview layer
     // starts up in portrait (not filling the whole view)
     self.processor.previewLayer.frame = self.view.bounds;
-    
-    originalTransform = self.view.transform;
 }
 
 //--------------------------------------------------------------------------
@@ -686,18 +662,6 @@ parentViewController:(UIViewController*)parentViewController
     [self startCapturing];
     
     [super viewDidAppear:animated];
-
-#ifdef DEBUGGER
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-        if (UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
-            self.view.transform = CGAffineTransformMakeRotation(0);
-            CGFloat frameWidth = self.view.bounds.size.width;
-            CGFloat frameHeight = self.view.bounds.size.height;
-            self.processor.previewLayer.frame = CGRectMake(0, 0, frameWidth, frameHeight);
-            self.view.frame = CGRectMake(0, 0, frameWidth, frameHeight);
-        }
-    }
-#endif
 }
 
 //--------------------------------------------------------------------------
@@ -856,20 +820,17 @@ parentViewController:(UIViewController*)parentViewController
 #pragma mark CDVBarcodeScannerOrientationDelegate
 
 - (BOOL)shouldAutorotate
+{   
+    return NO;
+}
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
 {
-    if ((self.orientationDelegate != nil) && [self.orientationDelegate respondsToSelector:@selector(shouldAutorotate)]) {
-        return [self.orientationDelegate shouldAutorotate];
-    }
-    
-    return YES;
+    return UIInterfaceOrientationPortrait;
 }
 
 - (NSUInteger)supportedInterfaceOrientations
 {
-    if ((self.orientationDelegate != nil) && [self.orientationDelegate respondsToSelector:@selector(supportedInterfaceOrientations)]) {
-        return [self.orientationDelegate supportedInterfaceOrientations];
-    }
-    
     return UIInterfaceOrientationMaskPortrait;
 }
 
@@ -884,33 +845,6 @@ parentViewController:(UIViewController*)parentViewController
 
 - (void) willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)orientation duration:(NSTimeInterval)duration
 {
-#ifdef DEBUGGER
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-        if (UIDeviceOrientationIsPortrait(orientation)) {
-            self.view.transform = originalTransform;
-            self.processor.previewLayer.orientation = orientation;
-            self.processor.previewLayer.frame = self.view.bounds;
-        }
-        else{
-            self.view.transform = CGAffineTransformMakeRotation(0);
-            if (orientation == UIDeviceOrientationLandscapeLeft) {
-                self.processor.previewLayer.orientation = UIDeviceOrientationLandscapeLeft;
-            }
-            else{
-                self.processor.previewLayer.orientation = UIDeviceOrientationLandscapeRight;
-            }
-            self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-        }
-        self.view.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-    }
-    else{
-        [CATransaction begin];
-        self.processor.previewLayer.orientation = orientation;
-        [self.processor.previewLayer layoutSublayers];
-        self.processor.previewLayer.frame = self.view.bounds;
-        [CATransaction commit];        
-    }
-#else
     [CATransaction begin];
     
     self.processor.previewLayer.orientation = orientation;
@@ -918,9 +852,6 @@ parentViewController:(UIViewController*)parentViewController
     self.processor.previewLayer.frame = self.view.bounds;
     
     [CATransaction commit];
-    [super willAnimateRotationToInterfaceOrientation:orientation duration:duration];
-    
-#endif
     [super willAnimateRotationToInterfaceOrientation:orientation duration:duration];
 }
 
