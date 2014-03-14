@@ -172,7 +172,7 @@
     
     NSString* js = [result toSuccessCallbackString:callback];
     
-    [self writeJavascript:js];
+ [self performSelector:@selector(writeJavascript:) withObject:js afterDelay:0];
 }
 
 //--------------------------------------------------------------------------
@@ -184,7 +184,8 @@
     
     NSString* js = [result toErrorCallbackString:callback];
     
-    [self writeJavascript:js];
+ //   [self writeJavascript:js];
+     [self performSelector:@selector(writeJavascript:) withObject:js afterDelay:0];
 }
 
 @end
