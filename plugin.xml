@@ -11,6 +11,9 @@
     </engines>
     <license>Asial</license>
     <platform name="ios">
+        <js-module src="www/ios/barcodeScanner.js" name="BarcodeScanner">
+            <clobbers target="plugins.barcodeScanner" />
+        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="org.apache.cordova.barcodeScanner">
                 <param name="ios-package" value="CDVBarcodeScanner"/>
