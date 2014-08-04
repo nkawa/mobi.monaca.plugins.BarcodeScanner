@@ -8,8 +8,6 @@
  */
 package com.phonegap.plugins.barcodescanner;
 
-import org.apache.cordova.api.CallbackContext;
-import org.apache.cordova.api.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,12 +16,16 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.PluginResult;
+
 /**
  * This calls out to the ZXing barcode reader and returns the result.
  *
  * @sa https://github.com/apache/cordova-android/blob/master/framework/src/org/apache/cordova/CordovaPlugin.java
  */
-public class BarcodeScannerPlugin extends CordovaPlugin {
+public class BarcodeScanner extends CordovaPlugin {
     public static final int REQUEST_CODE = 0x0ba7c0de;
 
     private static final String SCAN = "scan";
@@ -49,7 +51,7 @@ public class BarcodeScannerPlugin extends CordovaPlugin {
     /**
      * Constructor.
      */
-    public BarcodeScannerPlugin() {
+    public BarcodeScanner() {
     }
 
     /**
@@ -107,6 +109,8 @@ public class BarcodeScannerPlugin extends CordovaPlugin {
     public void scan() {
         Intent intentScan = new Intent(SCAN_INTENT);
         intentScan.addCategory(Intent.CATEGORY_DEFAULT);
+        // avoid calling other phonegap apps
+        intentScan.setPackage(this.cordova.getActivity().getApplicationContext().getPackageName());
 
         this.cordova.startActivityForResult((CordovaPlugin) this, intentScan, REQUEST_CODE);
     }
@@ -161,6 +165,8 @@ public class BarcodeScannerPlugin extends CordovaPlugin {
         Intent intentEncode = new Intent(ENCODE_INTENT);
         intentEncode.putExtra(ENCODE_TYPE, type);
         intentEncode.putExtra(ENCODE_DATA, data);
+        // avoid calling other phonegap apps
+        intentEncode.setPackage(this.cordova.getActivity().getApplicationContext().getPackageName());
 
         this.cordova.getActivity().startActivity(intentEncode);
     }

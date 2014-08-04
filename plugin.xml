@@ -36,23 +36,23 @@
         <js-module src="www/android/barcodeScanner.js" name="BarcodeScanner">
             <clobbers target="plugins.barcodeScanner" />
         </js-module>
-        <source-file src="src/android/com/phonegap/plugins/barcodescanner/BarcodeScannerPlugin.java" target-dir="src/com/phonegap/plugins/barcodescanner" />
+        <source-file src="src/android/com/phonegap/plugins/barcodescanner/BarcodeScanner.java" target-dir="src/com/phonegap/plugins/barcodescanner" />
         <!--
-         <source-file src="R.java" target-dir="src/com/google/zxing/client/android" />
-         -->
+        <source-file src="R.java" target-dir="src/com/google/zxing/client/android" />
+        -->
         
         <!--
-         <config-file target="res/xml/plugins.xml" parent="/plugins">
-         <plugin name="BarcodeScanner" value="com.phonegap.plugins.barcodescanner.BarcodeScanner"/>
-         </config-file>
-         -->
-        
+        <config-file target="res/xml/plugins.xml" parent="/plugins">
+            <plugin name="BarcodeScanner" value="com.phonegap.plugins.barcodescanner.BarcodeScanner"/>
+        </config-file>
+        -->
+
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="BarcodeScanner">
-                <param name="android-package" value="com.phonegap.plugins.barcodescanner.BarcodeScannerPlugin" />
+                <param name="android-package" value="com.phonegap.plugins.barcodescanner.BarcodeScanner" />
             </feature>
         </config-file>
-        
+
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <activity
                 android:name="com.google.zxing.client.android.CaptureActivity"
@@ -80,21 +80,21 @@
                 </intent-filter>
             </activity>
         </config-file>
-        
+
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.CAMERA" />
             <uses-permission android:name="android.permission.FLASHLIGHT" />
             <!-- Not required to allow users to work around this -->
             <uses-feature android:name="android.hardware.camera" android:required="false" />
         </config-file>
-        
+
         <source-file src="src/android/com.google.zxing.client.android.captureactivity.jar" target-dir="libs"/>
-        
+
         <!--
-         LibraryProject/res/*.*
-         search: (src/android/LibraryProject/(.+?)/[^/]+)$
-         replace: <source-file src="$1" target-dir="$2"/>
-         -->
+            LibraryProject/res/*.*
+            search: (src/android/LibraryProject/(.+?)/[^/]+)$
+            replace: <source-file src="$1" target-dir="$2"/>
+        -->
         
         <source-file src="src/android/LibraryProject/res/drawable/launcher_icon.png" target-dir="res/drawable"/>
         <source-file src="src/android/LibraryProject/res/drawable/share_via_barcode.png" target-dir="res/drawable"/>
@@ -153,7 +153,7 @@
         <source-file src="src/android/LibraryProject/res/values-zh-rCN/strings.xml" target-dir="res/values-zh-rCN"/>
         <source-file src="src/android/LibraryProject/res/values-zh-rTW/strings.xml" target-dir="res/values-zh-rTW"/>
         <source-file src="src/android/LibraryProject/res/xml/preferences.xml" target-dir="res/xml"/>
-        
+
         <!-- plugman cannot merge - prepare manual merge -->
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="app_picker_name">Applications</string>
