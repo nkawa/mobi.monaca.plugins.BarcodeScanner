@@ -5,7 +5,9 @@
     version="1.0.0">
 
     <name>BarcodeScanner</name>
-	<description>BarcodeScanner</description>
+	<description>
+        This plugin allows using camera on device as a barcode scanner
+    </description>
     <engines>
         <engine name="cordova" version=">=2.9.0" />
     </engines>
