@@ -259,6 +259,13 @@ parentViewController:(UIViewController*)parentViewController
 
 //--------------------------------------------------------------------------
 - (void)openDialog {
+    
+    UIDeviceOrientation deviceOrientation = [UIDevice currentDevice].orientation;
+    
+    if(UIInterfaceOrientationIsLandscape(deviceOrientation)){
+        [self.viewController.view setFrame:CGRectMake(0, 0, [[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width)];
+    }
+    
     [self.parentViewController
      presentModalViewController:self.viewController
      animated:YES
