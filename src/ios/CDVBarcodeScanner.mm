@@ -169,10 +169,11 @@
                                resultWithStatus: CDVCommandStatus_OK
                                messageAsDictionary: resultDict
                                ];
-    
-    NSString* js = [result toSuccessCallbackString:callback];
-    
- [self performSelector:@selector(writeJavascript:) withObject:js afterDelay:0];
+
+    [self.commandDelegate sendPluginResult:result callbackId:callback];
+//    NSString* js = [result toSuccessCallbackString:callback];
+//    
+// [self performSelector:@selector(writeJavascript:) withObject:js afterDelay:0];
 }
 
 //--------------------------------------------------------------------------
@@ -181,11 +182,12 @@
                                resultWithStatus: CDVCommandStatus_OK
                                messageAsString: message
                                ];
-    
-    NSString* js = [result toErrorCallbackString:callback];
-    
- //   [self writeJavascript:js];
-     [self performSelector:@selector(writeJavascript:) withObject:js afterDelay:0];
+
+    [self.commandDelegate sendPluginResult:result callbackId:callback];
+//    NSString* js = [result toErrorCallbackString:callback];
+//    
+// //   [self writeJavascript:js];
+//     [self performSelector:@selector(writeJavascript:) withObject:js afterDelay:0];
 }
 
 @end
